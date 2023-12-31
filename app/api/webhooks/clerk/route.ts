@@ -47,11 +47,13 @@ export async function POST(req: Request) {
       status: 400,
     });
   }
+
   const eventType = evt.type;
+  const sanitizedId = payload.data.id.replace(/-/g, "_");
   if (eventType === "user.created") {
     await db.user.create({
       data: {
-        externalUserId: payload.data.id,
+        externalUserId: sanitizedId,
         username: payload.data.username,
         imageUrl: payload.data.image_url,
       },
@@ -60,14 +62,14 @@ export async function POST(req: Request) {
   if (eventType === "user.updated") {
     const currentUser = await db.user.findUnique({
       where: {
-        externalUserId: payload.data.id,
+        externalUserId: sanitizedId,
       },
     });
     if (!currentUser) {
       return new Response("User not found.", { status: 400 });
     }
     await db.user.update({
-      where: { externalUserId: payload.data.id },
+      where: { externalUserId: sanitizedId },
       data: {
         username: payload.data.username,
         imageUrl: payload.data.image_url,
@@ -77,7 +79,7 @@ export async function POST(req: Request) {
   if (eventType === "user.deleted") {
     await db.user.delete({
       where: {
-        externalUserId: payload.data.id,
+        externalUserId: sanitizedId,
       },
     });
   }
